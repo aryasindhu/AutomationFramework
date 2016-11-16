@@ -46,6 +46,8 @@ public class TestRunner {
 	private static List<String> testCasesToRun = new ArrayList<String>();
 	private static List<String> testCasesToSkip = new ArrayList<String>();
 
+	public static Map<String, Object[][]> testData = new HashMap<String, Object[][]>();
+	
 	public static void main(String[] args) throws IOException {
 
 		// initialize
@@ -183,6 +185,7 @@ public class TestRunner {
 		String run = null;
 		Row row = null;
 		Cell cell = null;
+		String rowTestData = null;
 		while (rowIterator.hasNext()) {
 			row = rowIterator.next();
 			cell = row.getCell(0);
@@ -193,6 +196,27 @@ public class TestRunner {
 			if (methodName != null && methodName.length() > 0 && run != null && run.length() > 0) {
 				if ("YES".equalsIgnoreCase(run)) {
 					testCasesToRun.add(methodName);
+
+					//read test data from excel at row 3
+					cell = row.getCell(2);
+					rowTestData = cell.getStringCellValue();
+
+					if(rowTestData != null && rowTestData.trim().length() > 0) {
+						//some data is found
+
+						String[] allTestData = rowTestData.split("\\|");
+						Object[][] testDataList = new Object[allTestData.length][];
+						int tdIndex = 0;
+						for(String eachTestData : allTestData) {
+							String[] allData = eachTestData.split(",");//10, 20, 30
+							Object[] mapDataArray = new Object[allData.length];
+							for(int index=0; index< allData.length; index++) {
+								mapDataArray[index] = allData[index].trim();
+							}
+							testDataList[tdIndex++] = mapDataArray;
+						}
+						testData.put(methodName, testDataList);
+					}
 				} else if ("NO".equalsIgnoreCase(run)) {
 					testCasesToSkip.add(methodName);
 				}
