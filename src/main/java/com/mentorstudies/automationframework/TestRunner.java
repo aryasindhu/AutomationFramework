@@ -47,7 +47,8 @@ public class TestRunner {
 	private static List<String> testCasesToSkip = new ArrayList<String>();
 
 	public static Map<String, Object[][]> testData = new HashMap<String, Object[][]>();
-	
+	public static Map<String, Map<String, String>> keywordDetails = new HashMap<String, Map<String, String>>();
+
 	public static void main(String[] args) throws IOException {
 
 		// initialize
@@ -101,7 +102,7 @@ public class TestRunner {
 			classes.add(eachXMLClass);
 		}
 
-		//add the classes list to the xml test 
+		// add the classes list to the xml test
 		test.setXmlClasses(classes);
 
 		// map the test class and methods to testng format
@@ -186,6 +187,7 @@ public class TestRunner {
 		Row row = null;
 		Cell cell = null;
 		String rowTestData = null;
+		String rowKeywordFileNames;
 		while (rowIterator.hasNext()) {
 			row = rowIterator.next();
 			cell = row.getCell(0);
@@ -197,26 +199,43 @@ public class TestRunner {
 				if ("YES".equalsIgnoreCase(run)) {
 					testCasesToRun.add(methodName);
 
-					//read test data from excel at row 3
+					// read test data from excel at row 3
 					cell = row.getCell(2);
 					rowTestData = cell.getStringCellValue();
 
-					if(rowTestData != null && rowTestData.trim().length() > 0) {
-						//some data is found
+					if (rowTestData != null && rowTestData.trim().length() > 0) {
+						// some data is found
 
 						String[] allTestData = rowTestData.split("\\|");
 						Object[][] testDataList = new Object[allTestData.length][];
 						int tdIndex = 0;
-						for(String eachTestData : allTestData) {
-							String[] allData = eachTestData.split(",");//10, 20, 30
+						for (String eachTestData : allTestData) {
+							String[] allData = eachTestData.split(",");// 10,
+																		// 20,
+																		// 30
 							Object[] mapDataArray = new Object[allData.length];
-							for(int index=0; index< allData.length; index++) {
+							for (int index = 0; index < allData.length; index++) {
 								mapDataArray[index] = allData[index].trim();
 							}
 							testDataList[tdIndex++] = mapDataArray;
 						}
 						testData.put(methodName, testDataList);
 					}
+
+					// read keyword file names from excel at row 4
+					cell = row.getCell(3);
+					rowKeywordFileNames = cell.getStringCellValue();
+
+					if (rowKeywordFileNames != null && rowKeywordFileNames.trim().length() > 0) {
+						String[] allFiles = rowKeywordFileNames.split(",");
+						Map<String, String> fileKeywords = new HashMap<String, String>();
+
+						for (String eachFileName : allFiles) {
+							fileKeywords.putAll(ConfigReader.getAllProperties(eachFileName));
+						}
+						keywordDetails.put(methodName, fileKeywords);
+					}
+
 				} else if ("NO".equalsIgnoreCase(run)) {
 					testCasesToSkip.add(methodName);
 				}
